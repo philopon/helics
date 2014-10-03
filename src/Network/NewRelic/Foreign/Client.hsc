@@ -7,7 +7,7 @@ module Network.NewRelic.Foreign.Client where
 import Foreign.C
 import Foreign.Ptr
 
-newtype NewRelicStatusCode = NewRelicStatusCode CInt
+newtype NewRelicStatusCode = NewRelicStatusCode CLong
 
 #{enum NewRelicStatusCode, NewRelicStatusCode
  , shutdown = NEWRELIC_STATUS_CODE_SHUTDOWN

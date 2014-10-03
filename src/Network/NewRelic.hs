@@ -10,6 +10,7 @@ module Network.NewRelic
                     ), def
     , withNewRelic
     , recordMetric
+    , transaction
     ) where
 
 import Control.Exception
@@ -39,7 +40,7 @@ instance Default NewRelicConfig where
         TOOL_VERSION_ghc
         Nothing
 
-newtype NewRelicSegmentId = NewRelicSegmentId CInt
+newtype NewRelicSegmentId = NewRelicSegmentId CLong
 
 initNewRelic :: NewRelicConfig -> IO NewRelicSegmentId
 initNewRelic NewRelicConfig{..} =
@@ -49,7 +50,7 @@ initNewRelic NewRelicConfig{..} =
     withCString newRelicLanguageVersion $ \ver ->
     newrelic_init key app lng ver >>= \r ->
     if r >= 0
-        then return $ NewRelicSegmentId  r
+        then return . NewRelicSegmentId $ fromIntegral r
         else throwIO $ NewRelicReturnCode r
 
 shutdownNewRelic :: String -> IO ()
@@ -67,7 +68,7 @@ withNewRelic cfg m = bracket bra ket (m . snd)
         freePtr <- case newRelicStatusCallback cfg of
             Nothing -> return (return ())
             Just f  -> do
-                cb <- makeStatusCallback (f . NewRelicStatusCode)
+                cb <- makeStatusCallback (f . NewRelicStatusCode . fromIntegral)
                 newrelic_register_status_callback cb
                 return (freeHaskellFunPtr cb)
 
@@ -86,3 +87,15 @@ recordMetric str d = withCString str $ \mtr ->
     if r == 0
     then return ()
     else throwIO $ NewRelicReturnCode r
+
+transaction :: String -> String -> NewRelicSegmentId -> IO a -> IO a
+transaction name desc (NewRelicSegmentId pid) m = do
+    tid <- newrelic_transaction_begin
+    r <- withCString name $ newrelic_transaction_set_name tid 
+    if r == 0 then return () else throwIO $ NewRelicReturnCode r
+
+    sid <- withCString desc $ newrelic_segment_generic_begin tid pid
+    a <- m
+    s <- newrelic_segment_end tid sid
+    if s == 0 then return () else throwIO $ NewRelicReturnCode s
+    return a
