@@ -1,6 +1,6 @@
-name:                new-relic-agent
+name:                helics
 version:             0.1.0
--- synopsis:            
+synopsis:            new relic®agent
 -- description:         
 license:             MIT
 license-file:        LICENSE
@@ -9,14 +9,15 @@ maintainer:          philopon.dependence@gmail.com
 -- copyright:           
 category:            Network
 build-type:          Simple
--- extra-source-files:  
+-- extra-source-files:
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Network.NewRelic
-  other-modules:       Network.NewRelic.Foreign.Common
-                       Network.NewRelic.Foreign.Client
-                       Network.NewRelic.Foreign.Transaction
+  exposed-modules:     Network.Helics
+  other-modules:       Network.Helics.Foreign.Common
+                       Network.Helics.Foreign.Client
+                       Network.Helics.Foreign.Transaction
+                       Network.Helics.Foreign.System
   -- other-extensions:    
   build-depends:       base               >=4.7 && <4.8
                      , data-default-class >=0.0 && <0.1
@@ -31,6 +32,6 @@ library
 executable newrelic-example
   main-is:             example.hs
   build-depends:       base               >=4.7 && <4.8
-                     , new-relic-agent
-  ghc-options:         -Wall -O2
+                     , helics
+  ghc-options:         -Wall -O2 -threaded
   default-language:    Haskell2010

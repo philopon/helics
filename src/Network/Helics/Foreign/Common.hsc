@@ -1,7 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Network.NewRelic.Foreign.Common where
+module Network.Helics.Foreign.Common where
 
 #include <newrelic_common.h>
 

@@ -1,13 +1,14 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Network.NewRelic.Foreign.Client where
+module Network.Helics.Foreign.Client where
 
 #include <newrelic_collector_client.h>
 
 import Foreign.C
 import Foreign.Ptr
 
-newtype NewRelicStatusCode = NewRelicStatusCode CLong
+newtype NewRelicStatusCode = NewRelicStatusCode CInt
+    deriving Show
 
 #{enum NewRelicStatusCode, NewRelicStatusCode
  , shutdown = NEWRELIC_STATUS_CODE_SHUTDOWN

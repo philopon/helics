@@ -1,9 +1,16 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Network.NewRelic.Foreign.Transaction where
+module Network.Helics.Foreign.Transaction where
+
+#include <newrelic_transaction.h>
 
 import Foreign.C
 import Foreign.Ptr
+
+newtype NewRelicSegmentId = NewRelicSegmentId CLong
+
+rootSegment :: NewRelicSegmentId
+rootSegment = NewRelicSegmentId #const NEWRELIC_ROOT_SEGMENT
 
 foreign import ccall newrelic_enable_instrumentation :: CInt -> IO ()
 

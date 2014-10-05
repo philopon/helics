@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Network.NewRelic
+module Network.Helics
     (NewRelicConfig ( newRelicLicenseKey
                     , newRelicAppName
                     , newRelicLanguage
@@ -10,19 +10,24 @@ module Network.NewRelic
                     ), def
     , withNewRelic
     , recordMetric
+    , recordCpuUsage
+    , recordMemoryUsage
     , transaction
+    , rootSegment
     ) where
 
 import Control.Exception
+import Control.Monad
+import Control.Concurrent
 
 import Foreign.Ptr
 import Foreign.C
 
 import Data.Default.Class
 
-import Network.NewRelic.Foreign.Common
-import Network.NewRelic.Foreign.Client
-import Network.NewRelic.Foreign.Transaction
+import Network.Helics.Foreign.Common
+import Network.Helics.Foreign.Client
+import Network.Helics.Foreign.Transaction
 
 data NewRelicConfig = NewRelicConfig
     { newRelicLicenseKey      :: String
@@ -37,10 +42,8 @@ instance Default NewRelicConfig where
         (error "license key is not set.")
         "App"
         "Haskell"
-        TOOL_VERSION_ghc
+        "7.8.3" -- TOOL_VERSION_ghc
         Nothing
-
-newtype NewRelicSegmentId = NewRelicSegmentId CLong
 
 initNewRelic :: NewRelicConfig -> IO NewRelicSegmentId
 initNewRelic NewRelicConfig{..} =
@@ -61,36 +64,46 @@ shutdownNewRelic reason =
         then return ()
         else throwIO $ NewRelicReturnCode c
 
-withNewRelic :: NewRelicConfig -> (NewRelicSegmentId -> IO a) -> IO a
-withNewRelic cfg m = bracket bra ket (m . snd)
+withNewRelic :: NewRelicConfig -> IO a -> IO a
+withNewRelic cfg m = bracket bra ket (const m)
   where
     bra = do
-        freePtr <- case newRelicStatusCallback cfg of
-            Nothing -> return (return ())
-            Just f  -> do
-                cb <- makeStatusCallback (f . NewRelicStatusCode . fromIntegral)
-                newrelic_register_status_callback cb
-                return (freeHaskellFunPtr cb)
+        mv <- newEmptyMVar
+        cb <- makeStatusCallback (\i -> do
+            when (i == 3 || i == 0) $ putMVar mv ()
+            maybe (return ()) ($ NewRelicStatusCode i) $ newRelicStatusCallback cfg)
+        newrelic_register_status_callback cb
 
         newrelic_register_message_handler newrelic_message_handler
 
-        seg <- initNewRelic cfg
-        return (freePtr, seg)
+        _ <- initNewRelic cfg
+        takeMVar mv
+        return (freeHaskellFunPtr cb, mv)
 
-    ket (freePtr, _) = do
+    ket (freePtr, mv) = do
+        shutdownNewRelic "withNewRelic: shutdown"
+        takeMVar mv
         freePtr :: IO ()
-        shutdownNewRelic "withNewRelic: end"
 
 recordMetric :: String -> Double -> IO ()
 recordMetric str d = withCString str $ \mtr ->
     newrelic_record_metric mtr (realToFrac d) >>= \r ->
-    if r == 0
-    then return ()
-    else throwIO $ NewRelicReturnCode r
+    unless (r == 0) $ throwIO (NewRelicReturnCode r)
+
+recordCpuUsage :: Double -> Double -> IO ()
+recordCpuUsage ut p = do
+    r <- newrelic_record_cpu_usage (realToFrac ut) (realToFrac p)
+    unless (r == 0) $ throwIO (NewRelicReturnCode r)
+
+recordMemoryUsage :: Double -> IO ()
+recordMemoryUsage mb = do
+    r <- newrelic_record_memory_usage (realToFrac mb)
+    unless (r == 0) $ throwIO (NewRelicReturnCode r)
 
 transaction :: String -> String -> NewRelicSegmentId -> IO a -> IO a
 transaction name desc (NewRelicSegmentId pid) m = do
     tid <- newrelic_transaction_begin
+
     r <- withCString name $ newrelic_transaction_set_name tid 
     if r == 0 then return () else throwIO $ NewRelicReturnCode r
 
@@ -98,4 +111,7 @@ transaction name desc (NewRelicSegmentId pid) m = do
     a <- m
     s <- newrelic_segment_end tid sid
     if s == 0 then return () else throwIO $ NewRelicReturnCode s
+    newrelic_transaction_set_type_other tid
+    e <- newrelic_transaction_end tid
+    if e == 0 then return () else throwIO $ NewRelicReturnCode e
     return a
