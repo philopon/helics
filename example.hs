@@ -1,10 +1,23 @@
+{-# LANGUAGE OverloadedStrings #-}
+import Control.Monad
 import Control.Concurrent
 import System.Environment
-import Network.NewRelic
+import Network.Helics
+import qualified Data.ByteString.Char8 as S
+import Control.Exception
+import System.IO.Error
 
 main :: IO ()
 main = do
-    key:_ <- getArgs
-    withNewRelic def { newRelicLicenseKey = key } $ \root -> do
-        transaction "Test" "test_transaction" root $ do
-            threadDelay (10 ^ (6::Int))
+    k:_ <- getArgs
+    _ <- forkIO $ sampler 60
+    withHelics def { licenseKey = S.pack k } $ putStrLn "start" >> loop 0
+  where
+    loop i = do
+        withTransaction "test" def (\tid -> do
+            genericSegment autoScope "neko" (threadDelay (10^5)) tid
+            when (i `mod`  97 == 0) $ ioError $ userError "user error!"
+            when (i `mod` 101 == 0) $ throwIO Overflow
+            ) `catch` (\e -> print (e::SomeException))
+        threadDelay (2 * 10^5)
+        loop (succ i)

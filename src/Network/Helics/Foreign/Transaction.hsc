@@ -7,10 +7,13 @@ module Network.Helics.Foreign.Transaction where
 import Foreign.C
 import Foreign.Ptr
 
-newtype NewRelicSegmentId = NewRelicSegmentId CLong
+newtype TransactionId = TransactionId CLong
 
-rootSegment :: NewRelicSegmentId
-rootSegment = NewRelicSegmentId #const NEWRELIC_ROOT_SEGMENT
+newtype SegmentId = SegmentId CLong
+
+autoScope, rootSegment :: SegmentId
+autoScope   = SegmentId #const NEWRELIC_AUTOSCOPE
+rootSegment = SegmentId #const NEWRELIC_ROOT_SEGMENT
 
 foreign import ccall newrelic_enable_instrumentation :: CInt -> IO ()
 
@@ -45,9 +48,10 @@ foreign import ccall newrelic_transaction_end :: CLong -> IO CInt
 foreign import ccall newrelic_segment_generic_begin :: CLong -> CLong -> CString -> IO CLong
 
 type SqlObfuscator = CString -> IO CString
+foreign import ccall "wrapper" makeObfuscator :: SqlObfuscator -> IO (FunPtr SqlObfuscator)
 foreign import ccall newrelic_segment_datastore_begin
-    :: CLong -> CLong -> CString -> CString -> CString -> CString -> Ptr SqlObfuscator -> IO CLong
+    :: CLong -> CLong -> CString -> CString -> CString -> CString -> FunPtr SqlObfuscator -> IO CLong
 
-foreign import ccall newrelic_segment_external_begin :: CLong -> CLong -> CString -> CString -> CLong
+foreign import ccall newrelic_segment_external_begin :: CLong -> CLong -> CString -> CString -> IO CLong
 
 foreign import ccall newrelic_segment_end :: CLong -> CLong -> IO CInt

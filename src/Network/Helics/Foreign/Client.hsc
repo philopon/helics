@@ -7,14 +7,14 @@ module Network.Helics.Foreign.Client where
 import Foreign.C
 import Foreign.Ptr
 
-newtype NewRelicStatusCode = NewRelicStatusCode CInt
-    deriving Show
+newtype StatusCode = StatusCode CInt
+    deriving (Eq, Show)
 
-#{enum NewRelicStatusCode, NewRelicStatusCode
- , shutdown = NEWRELIC_STATUS_CODE_SHUTDOWN
- , starting = NEWRELIC_STATUS_CODE_STARTING
- , stopping = NEWRELIC_STATUS_CODE_STOPPING
- , started  = NEWRELIC_STATUS_CODE_STARTED
+#{enum StatusCode, StatusCode
+ , statusShutdown = NEWRELIC_STATUS_CODE_SHUTDOWN
+ , statusStarting = NEWRELIC_STATUS_CODE_STARTING
+ , statusStopping = NEWRELIC_STATUS_CODE_STOPPING
+ , statusStarted  = NEWRELIC_STATUS_CODE_STARTED
  }
 
 foreign import ccall "&newrelic_message_handler" newrelic_message_handler :: FunPtr (Ptr rawMessage -> IO ())
