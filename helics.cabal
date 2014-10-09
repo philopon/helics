@@ -1,7 +1,18 @@
 name:                helics
 version:             0.1.0
-synopsis:            new relic®agent
--- description:         
+synopsis:            New Relic® agent SDK wrapper for Haskell.
+description:         
+  New Relic® agent SDK wrapper for Haskell.
+  .
+  Please get New Relic Agent SDK(<https://docs.newrelic.com/docs/agents/agent-sdk/using-agent-sdk/getting-started-agent-sdk>) before you install this package.
+  .
+  Copy include\/lib dir of SDK to system include\/lib path, or specify extra include\/lib path when installing this package.
+  .
+  @
+  cabal insstall helics --extra-lib-dirs=$SDK_LIB_DIR --extra-include-dir=$SDK_INCLUDE_DIR
+  @
+  .
+
 license:             MIT
 license-file:        LICENSE
 author:              HirotomoMoriwaki

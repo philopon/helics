@@ -3,28 +3,36 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Network.Helics
-    (HelicsConfig ( licenseKey
-                  , appName
-                  , language
-                  , languageVersion
-                  , statusCallback
-                  ), def
+    ( HelicsConfig(..)
     , withHelics
+    , sampler
+    -- * metric
     , recordMetric
     , recordCpuUsage
     , recordMemoryUsage
+    -- * transaction
     , TransactionType(..)
+    , TransactionId
     , withTransaction
+    , addAttribute
+    , setRequestUrl
+    , setMaxTraceSegments
+    -- * segment
+    , SegmentId
     , autoScope
     , rootSegment
     , genericSegment
     , DatastoreSegment(..)
     , datastoreSegment
     , externalSegment
-    , addAttribute
-    , setRequestUrl
-    , setMaxTraceSegments
-    , sampler
+    -- * status code
+    , StatusCode
+    , statusShutdown
+    , statusStarting
+    , statusStopping
+    , statusStarted
+    -- * reexports
+    , def
     ) where
 
 import System.IO.Error
@@ -52,7 +60,6 @@ data HelicsConfig = HelicsConfig
     , appName         :: S.ByteString
     , language        :: S.ByteString
     , languageVersion :: S.ByteString
-    , daemonMode      :: Bool
     , statusCallback  :: Maybe (StatusCode -> IO ())
     }
 
@@ -61,8 +68,7 @@ instance Default HelicsConfig where
         (error "license key is not set.")
         "App"
         "Haskell"
-        "7.8.3" -- TOOL_VERSION_ghc
-        False
+        TOOL_VERSION_ghc
         Nothing
 
 guardNr :: CInt -> IO ()
@@ -82,6 +88,8 @@ shutdown reason =
     newrelic_request_shutdown r >>= \c ->
     guardNr c
 
+-- | start new relic®  collector client.
+-- you must call this function when embed-mode.
 withHelics :: HelicsConfig -> IO a -> IO a
 withHelics cfg m = bracket bra ket (const m)
   where
@@ -92,8 +100,7 @@ withHelics cfg m = bracket bra ket (const m)
             maybe (return ()) ($ StatusCode i) $ statusCallback cfg)
         newrelic_register_status_callback cb
 
-        unless (daemonMode cfg) $
-            newrelic_register_message_handler newrelic_message_handler
+        newrelic_register_message_handler newrelic_message_handler
 
         initialize cfg
         takeMVar mv
@@ -104,19 +111,24 @@ withHelics cfg m = bracket bra ket (const m)
         takeMVar mv :: IO ()
         freePtr :: IO ()
 
+-- | record custom metric.
 recordMetric :: S.ByteString -> Double -> IO ()
 recordMetric str d = S.useAsCString str $ \mtr ->
     newrelic_record_metric mtr (realToFrac d) >>= guardNr
 
-sampler :: Int -> IO ()
+-- | sample and send metric of cpu/memory usage.
+sampler :: Int -- ^ sampling frequency (sec)
+        -> IO ()
 sampler s = flip Sampler.sampler (s * 10^(6::Int)) $ \user cpu mem -> do
     recordCpuUsage user cpu
     recordMemoryUsage (fromIntegral mem / (1024 * 1024))
 
+-- | record CPU usage. Normally, you don't need to call this function. use sampler.
 recordCpuUsage :: Double -> Double -> IO ()
 recordCpuUsage ut p =
     newrelic_record_cpu_usage (realToFrac ut) (realToFrac p) >>= guardNr
 
+-- | record memory usage. Normally, you don't need to call this function. use sampler.
 recordMemoryUsage :: Double -> IO ()
 recordMemoryUsage mb = 
    newrelic_record_memory_usage (realToFrac mb) >>= guardNr
@@ -129,7 +141,8 @@ data TransactionType
 instance Default TransactionType where
     def = Default
 
-withTransaction :: S.ByteString -> TransactionType -> (TransactionId -> IO c) -> IO c
+withTransaction :: S.ByteString -- ^ name of transaction
+                -> TransactionType -> (TransactionId -> IO c) -> IO c
 withTransaction name typ act = bracket bra ket
     (\tid -> act tid `catch` exceptionHandler tid)
   where
@@ -207,7 +220,10 @@ datastoreSegment (SegmentId pid) DatastoreSegment{..} act (TransactionId tid) =
             segment tid
                 (newrelic_segment_datastore_begin tid pid tbl op q tr cf) act
 
-externalSegment :: SegmentId -> S.ByteString -> S.ByteString -> IO a -> TransactionId -> IO a
+externalSegment :: SegmentId
+                -> S.ByteString -- ^ host of segment
+                -> S.ByteString -- ^ name of segment
+                -> IO a -> TransactionId -> IO a
 externalSegment (SegmentId pid) host name act (TransactionId tid) =
     S.useAsCString host $ \h ->
     S.useAsCString name $ \n ->
