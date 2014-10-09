@@ -68,7 +68,7 @@ instance Default HelicsConfig where
         (error "license key is not set.")
         "App"
         "Haskell"
-        TOOL_VERSION_ghc
+        COMPILER_VERSION
         Nothing
 
 guardNr :: CInt -> IO ()
