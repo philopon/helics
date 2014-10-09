@@ -2,14 +2,19 @@ name:                helics-wai
 version:             0.1.0
 synopsis:            New Relic® agent SDK wrapper for wai.
 description:         
+  New Relic® agent SDK wrapper for wai.
+  .
+  Please read example: <https://github.com/philopon/helics/blob/master/helics-wai/example.hs>.
 license:             MIT
 license-file:        LICENSE
-author:              HirotomoMoriwaki
-maintainer:          philopon.dependence@gmail.com
--- copyright:           
+author:              HirotomoMoriwaki<philopon.dependence@gmail.com>
+maintainer:          HirotomoMoriwaki<philopon.dependence@gmail.com>
+Homepage:            https://github.com/philopon/apiary
+Bug-reports:         https://github.com/philopon/apiary/issues
+copyright:           (c) 2014 Hirotomo Moriwaki
 category:            Network
 build-type:          Simple
--- extra-source-files:
+stability:           experimental
 cabal-version:       >=1.10
 
 flag example
@@ -39,6 +44,7 @@ executable helics-wai-example
                        , vault
                        , http-types
                        , bytestring
+    buildable:         True
   else
     buildable:         False
   ghc-options:         -Wall -O2 -threaded

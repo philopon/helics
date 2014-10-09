@@ -1,5 +1,5 @@
 name:                helics
-version:             0.1.1
+version:             0.1.2
 synopsis:            New Relic® agent SDK wrapper for Haskell.
 description:         
   New Relic® agent SDK wrapper for Haskell.
@@ -15,12 +15,14 @@ description:
 
 license:             MIT
 license-file:        LICENSE
-author:              HirotomoMoriwaki
-maintainer:          philopon.dependence@gmail.com
--- copyright:           
+author:              HirotomoMoriwaki<philopon.dependence@gmail.com>
+maintainer:          HirotomoMoriwaki<philopon.dependence@gmail.com>
+Homepage:            https://github.com/philopon/helics
+Bug-reports:         https://github.com/philopon/helics/issues
+copyright:           (c) 2014 Hirotomo Moriwaki
 category:            Network
+stability:           experimental
 build-type:          Custom
--- extra-source-files:
 cabal-version:       >=1.10
 
 flag example
