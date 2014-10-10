@@ -35,7 +35,7 @@ library
 executable helics-wai-example
   main-is:             example.hs
   if flag(example)
-    build-depends:       base               >=4.7  && <4.8
+    build-depends:       base               >=4.6  && <4.8
                        , wai
                        , helics-wai
                        , warp
