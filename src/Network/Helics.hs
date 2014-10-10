@@ -22,6 +22,7 @@ module Network.Helics
     , autoScope
     , rootSegment
     , genericSegment
+    , Operation(..)
     , DatastoreSegment(..)
     , datastoreSegment
     , externalSegment
@@ -189,9 +190,22 @@ genericSegment :: SegmentId     -- ^ parent segment id
 genericSegment (SegmentId pid) name act (TransactionId tid) = segment tid
     (S.useAsCString name $ newrelic_segment_generic_begin tid pid) act
 
+data Operation
+    = SELECT
+    | INSERT
+    | UPDATE
+    | DELETE
+    deriving (Show)
+
+opToBS :: Operation -> S.ByteString
+opToBS SELECT = newrelicDatastoreSelect
+opToBS INSERT = newrelicDatastoreInsert
+opToBS UPDATE = newrelicDatastoreUpdate
+opToBS DELETE = newrelicDatastoreDelete
+
 data DatastoreSegment = DatastoreSegment
     { table              :: S.ByteString
-    , operation          :: S.ByteString
+    , operation          :: Operation
     , sql                :: S.ByteString
     , sqlTraceRollupName :: S.ByteString
     , sqlObFuscator      :: Maybe (S.ByteString -> S.ByteString)
@@ -207,9 +221,9 @@ toCObfuscator f i = do
 
 datastoreSegment :: SegmentId -> DatastoreSegment -> IO a -> TransactionId -> IO a
 datastoreSegment (SegmentId pid) DatastoreSegment{..} act (TransactionId tid) = 
-    S.useAsCString table     $ \tbl ->
-    S.useAsCString operation $ \op ->
-    S.useAsCString sql       $ \q  ->
+    S.useAsCString table              $ \tbl ->
+    S.useAsCString (opToBS operation) $ \op ->
+    S.useAsCString sql                $ \q  ->
     S.useAsCString sqlTraceRollupName $ \tr -> do
     case sqlObFuscator of
         Nothing -> segment tid

@@ -6,4 +6,4 @@ curl -O $BASE/$FILE
 tar xvf $FILE
 sudo cp ${FILE%.tar.gz}/include/* /usr/local/include
 sudo cp ${FILE%.tar.gz}/lib/*     /usr/local/lib
-cabal install --only-dependencies --enable-tests . ./helics-wai
+cabal install -f example --only-dependencies --enable-tests . ./helics-wai

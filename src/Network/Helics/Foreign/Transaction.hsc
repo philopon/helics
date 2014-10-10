@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Network.Helics.Foreign.Transaction where
 
@@ -6,6 +7,7 @@ module Network.Helics.Foreign.Transaction where
 
 import Foreign.C
 import Foreign.Ptr
+import qualified Data.ByteString as S
 
 newtype TransactionId = TransactionId CLong
 
@@ -14,6 +16,12 @@ newtype SegmentId = SegmentId CLong
 autoScope, rootSegment :: SegmentId
 autoScope   = SegmentId #const NEWRELIC_AUTOSCOPE
 rootSegment = SegmentId #const NEWRELIC_ROOT_SEGMENT
+
+newrelicDatastoreSelect, newrelicDatastoreInsert, newrelicDatastoreUpdate, newrelicDatastoreDelete :: S.ByteString
+newrelicDatastoreSelect = #{const_str NEWRELIC_DATASTORE_SELECT}
+newrelicDatastoreInsert = #{const_str NEWRELIC_DATASTORE_INSERT}
+newrelicDatastoreUpdate = #{const_str NEWRELIC_DATASTORE_UPDATE}
+newrelicDatastoreDelete = #{const_str NEWRELIC_DATASTORE_DELETE}
 
 foreign import ccall newrelic_enable_instrumentation :: CInt -> IO ()
 
