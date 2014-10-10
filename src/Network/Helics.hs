@@ -210,6 +210,8 @@ data DatastoreSegment = DatastoreSegment
     , sqlTraceRollupName :: S.ByteString
     , sqlObFuscator      :: Maybe (S.ByteString -> S.ByteString)
     }
+instance Default DatastoreSegment where
+    def = DatastoreSegment "unknown" SELECT "" "unknown" Nothing
 
 toCObfuscator :: (S.ByteString -> S.ByteString) -> CString -> IO CString
 toCObfuscator f i = do
