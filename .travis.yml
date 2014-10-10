@@ -1,0 +1,9 @@
+language: haskell
+ghc:
+  - 7.8
+  - 7.6
+install: bash -eu .travis-install.sh
+script:
+  - cabal configure --enable-tests && cabal build && cabal test
+  - cd helics-wai
+  - cabal configure --enable-tests && cabal build && cabal test

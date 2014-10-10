@@ -36,7 +36,7 @@ library
                        Network.Helics.Foreign.Transaction
                        Network.Helics.Foreign.System
   -- other-extensions:    
-  build-depends:       base               >=4.7  && <4.8
+  build-depends:       base               >=4.6  && <4.8
                      , data-default-class >=0.0  && <0.1
                      , time               >=1.2  && <1.6
                      , unix               >=2.6  && <2.8
