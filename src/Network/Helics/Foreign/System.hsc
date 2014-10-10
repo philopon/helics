@@ -10,6 +10,8 @@ module Network.Helics.Foreign.System
 #include <unistd.h>
 #include <sys/times.h>
 
+import Control.Exception
+
 import System.Posix.Types
 import System.Posix.IO.ByteString
 
@@ -37,8 +39,7 @@ bufSize = 1024
 getPages :: CPid -> IO Int
 getPages (CPid pid) = do
     let name = S8.concat ["/proc/", L.toStrict $ L.show pid, "/statm"]
-    fd <- openFd name ReadOnly Nothing defaultFileFlags
-    allocaBytes bufSize $ \ptr -> do
+    bracket (openFd name ReadOnly Nothing defaultFileFlags) closeFd $ \fd -> allocaBytes bufSize $ \ptr -> do
         CSize l <- fdReadBuf fd ptr $ fromIntegral bufSize
         bs      <- U.unsafePackCStringLen (castPtr ptr, fromIntegral l)
         return . maybe 0 fst . S8.readInt . S8.tail . snd $ S8.break (== ' ') bs
