@@ -5,8 +5,6 @@ module Network.Helics.Foreign.Common where
 
 #include <newrelic_common.h>
 
-import Data.Typeable
-import Control.Exception
 import Foreign.C
 import Foreign.Ptr
 import Network.Helics.Types

@@ -1,5 +1,5 @@
 name:                helics
-version:             0.2.1
+version:             0.3.0
 synopsis:            New Relic® agent SDK wrapper for Haskell.
 description:         
   New Relic® agent SDK wrapper for Haskell.
@@ -29,7 +29,7 @@ flag example
   default: False
 
 flag dummy
-  description: compile dummy module on !linux os.
+  description: compile dummy modules on !linux.
   default:     True
 
 library
