@@ -6,9 +6,7 @@ module Network.Helics.Foreign.Client where
 
 import Foreign.C
 import Foreign.Ptr
-
-newtype StatusCode = StatusCode CInt
-    deriving (Eq, Show)
+import Network.Helics.Types
 
 #{enum StatusCode, StatusCode
  , statusShutdown = NEWRELIC_STATUS_CODE_SHUTDOWN
@@ -19,7 +17,6 @@ newtype StatusCode = StatusCode CInt
 
 foreign import ccall "&newrelic_message_handler" newrelic_message_handler :: FunPtr (Ptr rawMessage -> IO ())
 
-type StatusCallback = CInt -> IO ()
 foreign import ccall "wrapper" makeStatusCallback :: StatusCallback -> IO (FunPtr StatusCallback)
 foreign import ccall newrelic_register_status_callback :: FunPtr StatusCallback -> IO ()
 

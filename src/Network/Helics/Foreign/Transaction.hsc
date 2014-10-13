@@ -8,10 +8,7 @@ module Network.Helics.Foreign.Transaction where
 import Foreign.C
 import Foreign.Ptr
 import qualified Data.ByteString as S
-
-newtype TransactionId = TransactionId CLong
-
-newtype SegmentId = SegmentId CLong
+import Network.Helics.Types
 
 autoScope, rootSegment :: SegmentId
 autoScope   = SegmentId #const NEWRELIC_AUTOSCOPE
@@ -55,7 +52,6 @@ foreign import ccall newrelic_transaction_end :: CLong -> IO CInt
 
 foreign import ccall newrelic_segment_generic_begin :: CLong -> CLong -> CString -> IO CLong
 
-type SqlObfuscator = CString -> IO CString
 foreign import ccall "wrapper" makeObfuscator :: SqlObfuscator -> IO (FunPtr SqlObfuscator)
 foreign import ccall newrelic_segment_datastore_begin
     :: CLong -> CLong -> CString -> CString -> CString -> CString -> FunPtr SqlObfuscator -> IO CLong

@@ -55,22 +55,7 @@ import qualified Network.Helics.Sampler as Sampler
 import Network.Helics.Foreign.Common
 import Network.Helics.Foreign.Client
 import Network.Helics.Foreign.Transaction
-
-data HelicsConfig = HelicsConfig
-    { licenseKey      :: S.ByteString
-    , appName         :: S.ByteString
-    , language        :: S.ByteString
-    , languageVersion :: S.ByteString
-    , statusCallback  :: Maybe (StatusCode -> IO ())
-    }
-
-instance Default HelicsConfig where
-    def = HelicsConfig
-        (error "license key is not set.")
-        "App"
-        "Haskell"
-        COMPILER_VERSION
-        Nothing
+import Network.Helics.Types
 
 guardNr :: CInt -> IO ()
 guardNr c = unless (c == 0) $ throwIO $ ReturnCode c
@@ -134,14 +119,6 @@ recordMemoryUsage :: Double -> IO ()
 recordMemoryUsage mb = 
    newrelic_record_memory_usage (realToFrac mb) >>= guardNr
 
-data TransactionType
-    = Default
-    | Web   S.ByteString
-    | Other S.ByteString
-
-instance Default TransactionType where
-    def = Default
-
 withTransaction :: S.ByteString -- ^ name of transaction
                 -> TransactionType -> (TransactionId -> IO c) -> IO c
 withTransaction name typ act = bracket bra ket
@@ -190,28 +167,11 @@ genericSegment :: SegmentId     -- ^ parent segment id
 genericSegment (SegmentId pid) name act (TransactionId tid) = segment tid
     (S.useAsCString name $ newrelic_segment_generic_begin tid pid) act
 
-data Operation
-    = SELECT
-    | INSERT
-    | UPDATE
-    | DELETE
-    deriving (Show)
-
 opToBS :: Operation -> S.ByteString
 opToBS SELECT = newrelicDatastoreSelect
 opToBS INSERT = newrelicDatastoreInsert
 opToBS UPDATE = newrelicDatastoreUpdate
 opToBS DELETE = newrelicDatastoreDelete
-
-data DatastoreSegment = DatastoreSegment
-    { table              :: S.ByteString
-    , operation          :: Operation
-    , sql                :: S.ByteString
-    , sqlTraceRollupName :: S.ByteString
-    , sqlObFuscator      :: Maybe (S.ByteString -> S.ByteString)
-    }
-instance Default DatastoreSegment where
-    def = DatastoreSegment "unknown" SELECT "" "unknown" Nothing
 
 toCObfuscator :: (S.ByteString -> S.ByteString) -> CString -> IO CString
 toCObfuscator f i = do
