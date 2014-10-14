@@ -18,6 +18,7 @@ module Network.Helics
     , addAttribute
     , setRequestUrl
     , setMaxTraceSegments
+    , TransactionError(..)
     , setError
     , noticeError
     , clearError

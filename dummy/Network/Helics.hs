@@ -17,6 +17,7 @@ module Network.Helics
     , addAttribute
     , setRequestUrl
     , setMaxTraceSegments
+    , TransactionError(..)
     , setError
     , noticeError
     , clearError
@@ -39,23 +40,10 @@ module Network.Helics
     , def
     ) where
 
-import System.IO.Error
-
-import Control.Exception
-import Control.Monad
-import Control.Concurrent
-
-import Foreign.C
-import Foreign.Ptr
-import Foreign.Marshal
-import Foreign.Storable
-
 import Data.IORef
-import Data.Word
 import Data.Default.Class
 import qualified Data.ByteString as S
 
-import qualified Network.Helics.Sampler as Sampler
 import Network.Helics.Internal.Types
 
 autoScope, rootSegment :: SegmentId
