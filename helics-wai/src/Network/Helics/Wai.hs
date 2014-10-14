@@ -2,13 +2,13 @@ module Network.Helics.Wai
     ( Safe.HelicsMiddlewareConfig(..)
     -- * middleware
     , helics
+    , dummyHelics
     -- * getter
     , transactionId
     , lookupTransactionId
     -- * reexports
     , def
     ) where
-
 
 import Network.Wai
 import Network.Helics
@@ -23,6 +23,9 @@ tidKey = unsafePerformIO V.newKey
 -- | helics middleware.
 helics :: Safe.HelicsMiddlewareConfig -> Middleware
 helics = Safe.helics tidKey
+
+dummyHelics :: Middleware
+dummyHelics = Safe.dummyHelics tidKey
 
 -- | get TransactionId from request.
 transactionId :: Request -> TransactionId
