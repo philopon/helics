@@ -50,6 +50,7 @@ import Foreign.Ptr
 import Foreign.Marshal
 import Foreign.Storable
 
+import Data.IORef
 import Data.Word
 import Data.Default.Class
 import qualified Data.ByteString as S
@@ -91,7 +92,9 @@ recordMemoryUsage _ = return ()
 
 withTransaction :: S.ByteString -- ^ name of transaction
                 -> TransactionType -> (TransactionId -> IO c) -> IO c
-withTransaction _ _ m = m (TransactionId 0)
+withTransaction _ _ m = do
+    ref <- newIORef Nothing
+    m (TransactionId 0 ref)
 
 genericSegment :: SegmentId     -- ^ parent segment id
                -> S.ByteString  -- ^ name of represent segment
