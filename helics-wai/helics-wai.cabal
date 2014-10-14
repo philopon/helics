@@ -1,5 +1,5 @@
 name:                helics-wai
-version:             0.2.0.2
+version:             0.4.0
 synopsis:            New Relic® agent SDK wrapper for wai.
 description:         
   New Relic® agent SDK wrapper for wai.
@@ -23,11 +23,12 @@ flag example
 library
   exposed-modules:     Network.Helics.Wai
                        Network.Helics.Wai.Safe
-  -- other-extensions:    
   build-depends:       base               >=4.6  && <4.8
                      , wai                >=3.0  && <3.1
                      , vault              >=0.3  && <0.4
-                     , helics             >=0.1  && <0.4
+                     , helics             >=0.4  && <0.5
+                     , data-default-class >=0.0  && <0.1
+                     , bytestring         >=0.10 && <0.11
   ghc-options:         -Wall -O2
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -35,7 +36,7 @@ library
 executable helics-wai-example
   main-is:             example.hs
   if flag(example)
-    build-depends:       base               >=4.6  && <4.8
+    build-depends:       base
                        , wai
                        , helics-wai
                        , warp

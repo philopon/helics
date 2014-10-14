@@ -1,5 +1,5 @@
 name:                helics
-version:             0.3.0
+version:             0.4.0
 synopsis:            New Relic® agent SDK wrapper for Haskell.
 description:         
   New Relic® agent SDK wrapper for Haskell.
@@ -35,7 +35,7 @@ flag dummy
 library
   exposed-modules:     Network.Helics
                        Network.Helics.Sampler
-  other-modules:       Network.Helics.Types
+                       Network.Helics.Internal.Types
   ghc-options:         -Wall -O2
   default-language:    Haskell2010
   build-depends:       base               >=4.6  && <4.8
@@ -61,7 +61,7 @@ library
 executable helics-example
   main-is:             example.hs
   if flag(example)
-    build-depends:       base               >=4.6 && <4.8
+    build-depends:       base
                        , helics
                        , bytestring
     buildable:         True

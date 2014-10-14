@@ -17,6 +17,9 @@ module Network.Helics
     , addAttribute
     , setRequestUrl
     , setMaxTraceSegments
+    , setError
+    , noticeError
+    , clearError
     -- * segment
     , SegmentId
     , autoScope
@@ -52,7 +55,7 @@ import Data.Default.Class
 import qualified Data.ByteString as S
 
 import qualified Network.Helics.Sampler as Sampler
-import Network.Helics.Types
+import Network.Helics.Internal.Types
 
 autoScope, rootSegment :: SegmentId
 autoScope   = SegmentId 0
@@ -114,3 +117,12 @@ setRequestUrl _ _ = return ()
 
 setMaxTraceSegments :: Int -> TransactionId -> IO ()
 setMaxTraceSegments _ _ = return ()
+
+setError :: Maybe TransactionError -> TransactionId -> IO ()
+setError _ _ = return ()
+
+noticeError :: TransactionError -> TransactionId -> IO ()
+noticeError _ _ = return ()
+
+clearError :: TransactionId -> IO ()
+clearError _ = return ()

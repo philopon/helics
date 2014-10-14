@@ -8,7 +8,7 @@ module Network.Helics.Foreign.Transaction where
 import Foreign.C
 import Foreign.Ptr
 import qualified Data.ByteString as S
-import Network.Helics.Types
+import Network.Helics.Internal.Types
 
 autoScope, rootSegment :: SegmentId
 autoScope   = SegmentId #const NEWRELIC_AUTOSCOPE

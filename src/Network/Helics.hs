@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 module Network.Helics
     ( HelicsConfig(..)
@@ -17,6 +18,9 @@ module Network.Helics
     , addAttribute
     , setRequestUrl
     , setMaxTraceSegments
+    , setError
+    , noticeError
+    , clearError
     -- * segment
     , SegmentId
     , autoScope
@@ -47,15 +51,17 @@ import Foreign.Ptr
 import Foreign.Marshal
 import Foreign.Storable
 
+import Data.IORef
 import Data.Word
 import Data.Default.Class
 import qualified Data.ByteString as S
+import qualified Data.ByteString.Char8 as S8
 
 import qualified Network.Helics.Sampler as Sampler
 import Network.Helics.Foreign.Common
 import Network.Helics.Foreign.Client
 import Network.Helics.Foreign.Transaction
-import Network.Helics.Types
+import Network.Helics.Internal.Types
 
 guardNr :: CInt -> IO ()
 guardNr c = unless (c == 0) $ throwIO $ ReturnCode c
@@ -122,13 +128,14 @@ recordMemoryUsage mb =
 withTransaction :: S.ByteString -- ^ name of transaction
                 -> TransactionType -> (TransactionId -> IO c) -> IO c
 withTransaction name typ act = bracket bra ket
-    (\tid -> act tid `catch` exceptionHandler tid)
+    (\tid -> act tid `catch` (\e -> exceptionHandler tid e >> throwIO e))
   where
     bra = do
         tid <- newrelic_transaction_begin
         guardNr =<< S.useAsCString name (newrelic_transaction_set_name tid)
-        return $ TransactionId tid
-    ket (TransactionId tid) = do
+        err <- newIORef Nothing
+        return $ TransactionId tid err
+    ket (TransactionId tid er) = do
         case typ of
             Default -> return ()
             Web cat ->
@@ -136,19 +143,23 @@ withTransaction name typ act = bracket bra ket
             Other cat -> do
                 guardNr =<< newrelic_transaction_set_type_other tid
                 guardNr =<< S.useAsCString cat (newrelic_transaction_set_category tid)
+        err <- readIORef er
+        case err of
+            Nothing -> return ()
+            Just TransactionError{..} ->
+                S.useAsCString exceptionType $ \ert ->
+                S.useAsCString errorMessage  $ \msg ->
+                S.useAsCString stackTrace    $ \trc ->
+                S.useAsCString stackFrameDelimiter $ \dlm ->
+                guardNr =<< newrelic_transaction_notice_error tid ert msg trc dlm
         guardNr =<< newrelic_transaction_end tid
 
-    exceptionHandler (TransactionId tid) se = case fromException se of
-        Just e -> do
-            withCString (show $ ioeGetErrorType e) $ \et ->
-                withCString (ioeGetErrorString e)  $ \msg ->
-                newrelic_transaction_notice_error tid et msg nullPtr nullPtr >>= guardNr
-            ioError e
-
-        Nothing -> do
-            withCString (show se) $ \et ->
-                newrelic_transaction_notice_error tid et nullPtr nullPtr nullPtr >>= guardNr
-            throwIO se
+    exceptionHandler (TransactionId _ err) se = case fromException se of
+        Just e  -> writeIORef err $ Just $ TransactionError
+            (S8.pack . show $ ioeGetErrorType e)
+            (S8.pack $ ioeGetErrorString e) "" ""
+        Nothing -> writeIORef err $ Just $ TransactionError
+            (S8.pack $ show se) "" "" ""
 
 guardSid :: CLong -> IO CLong
 guardSid sid =
@@ -164,7 +175,7 @@ genericSegment :: SegmentId     -- ^ parent segment id
                -> IO c          -- ^ action in segment
                -> TransactionId
                -> IO c
-genericSegment (SegmentId pid) name act (TransactionId tid) = segment tid
+genericSegment (SegmentId pid) name act (TransactionId tid _) = segment tid
     (S.useAsCString name $ newrelic_segment_generic_begin tid pid) act
 
 opToBS :: Operation -> S.ByteString
@@ -182,7 +193,7 @@ toCObfuscator f i = do
     return m
 
 datastoreSegment :: SegmentId -> DatastoreSegment -> IO a -> TransactionId -> IO a
-datastoreSegment (SegmentId pid) DatastoreSegment{..} act (TransactionId tid) = 
+datastoreSegment (SegmentId pid) DatastoreSegment{..} act (TransactionId tid _) = 
     S.useAsCString table              $ \tbl ->
     S.useAsCString (opToBS operation) $ \op ->
     S.useAsCString sql                $ \q  ->
@@ -200,21 +211,30 @@ externalSegment :: SegmentId
                 -> S.ByteString -- ^ host of segment
                 -> S.ByteString -- ^ name of segment
                 -> IO a -> TransactionId -> IO a
-externalSegment (SegmentId pid) host name act (TransactionId tid) =
+externalSegment (SegmentId pid) host name act (TransactionId tid _) =
     S.useAsCString host $ \h ->
     S.useAsCString name $ \n ->
     segment tid (newrelic_segment_external_begin tid pid h n) act
 
 addAttribute :: S.ByteString -> S.ByteString -> TransactionId -> IO ()
-addAttribute name value (TransactionId tid) =
+addAttribute name value (TransactionId tid _) =
    S.useAsCString name  $ \n ->
    S.useAsCString value $ \v ->
    guardNr =<< newrelic_transaction_add_attribute tid n v
 
 setRequestUrl :: S.ByteString -> TransactionId -> IO ()
-setRequestUrl req (TransactionId tid) =
+setRequestUrl req (TransactionId tid _) =
    guardNr =<< S.useAsCString req (newrelic_transaction_set_request_url tid)
 
 setMaxTraceSegments :: Int -> TransactionId -> IO ()
-setMaxTraceSegments mx (TransactionId tid) = guardNr =<<
+setMaxTraceSegments mx (TransactionId tid _) = guardNr =<<
     newrelic_transaction_set_max_trace_segments tid (fromIntegral mx)
+
+setError :: Maybe TransactionError -> TransactionId -> IO ()
+setError e (TransactionId _ err) = writeIORef err e
+
+noticeError :: TransactionError -> TransactionId -> IO ()
+noticeError = setError . Just
+
+clearError :: TransactionId -> IO ()
+clearError = setError Nothing
