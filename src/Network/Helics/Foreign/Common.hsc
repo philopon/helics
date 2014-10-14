@@ -7,7 +7,7 @@ module Network.Helics.Foreign.Common where
 
 import Foreign.C
 import Foreign.Ptr
-import Network.Helics.Types
+import Network.Helics.Internal.Types
 
 #{enum ReturnCode, ReturnCode
  , returnCodeOk                    = NEWRELIC_RETURN_CODE_OK

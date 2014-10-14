@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 
-module Network.Helics.Types where
+module Network.Helics.Internal.Types where
 
 import Control.Exception
 

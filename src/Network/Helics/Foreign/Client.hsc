@@ -6,7 +6,7 @@ module Network.Helics.Foreign.Client where
 
 import Foreign.C
 import Foreign.Ptr
-import Network.Helics.Types
+import Network.Helics.Internal.Types
 
 #{enum StatusCode, StatusCode
  , statusShutdown = NEWRELIC_STATUS_CODE_SHUTDOWN
