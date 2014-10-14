@@ -36,8 +36,7 @@ helics key conf app req send =
 -- | Middleware which add dummy TransactionId to Request. since v0.4.0.
 dummyHelics :: Key TransactionId -> Middleware
 dummyHelics key app req send = do
-    err <- newIORef Nothing
-    app req { vault = insert key (TransactionId 0 err) (vault req) } send
+    app req { vault = insert key DummyTransactionId (vault req) } send
 
 -- | get TransactionId from request.
 transactionId :: Key TransactionId -> Request -> TransactionId
