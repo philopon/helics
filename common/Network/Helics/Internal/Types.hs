@@ -30,10 +30,12 @@ data TransactionError = TransactionError
     , stackFrameDelimiter :: S.ByteString
     }
 
-data TransactionId = TransactionId
-    { rawTransactionId :: CLong
-    , transactionError :: IORef (Maybe TransactionError)
-    }
+data TransactionId
+    = TransactionId
+        { rawTransactionId :: CLong
+        , transactionError :: IORef (Maybe TransactionError)
+        }
+    | DummyTransactionId
 
 newtype SegmentId = SegmentId CLong
 type SqlObfuscator = CString -> IO CString
