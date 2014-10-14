@@ -47,6 +47,7 @@ import Foreign.Ptr
 import Foreign.Marshal
 import Foreign.Storable
 
+import Data.IORef
 import Data.Word
 import Data.Default.Class
 import qualified Data.ByteString as S
@@ -127,7 +128,8 @@ withTransaction name typ act = bracket bra ket
     bra = do
         tid <- newrelic_transaction_begin
         guardNr =<< S.useAsCString name (newrelic_transaction_set_name tid)
-        return $ TransactionId tid
+        err <- newIORef
+        return $ TransactionId tid err
     ket (TransactionId tid) = do
         case typ of
             Default -> return ()

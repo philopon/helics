@@ -9,6 +9,7 @@ import Control.Exception
 import Foreign.C.Types
 import Foreign.C.String
 
+import Data.IORef
 import Data.Typeable
 import Data.Default.Class
 import qualified Data.ByteString as S
@@ -22,7 +23,17 @@ type StatusCallback = CInt -> IO ()
 newtype StatusCode = StatusCode CInt deriving (Eq, Show)
 
 -- transaction
-newtype TransactionId = TransactionId CLong
+data TransactionError = TransactionError
+    { exceptionType       :: S.ByteString
+    , errorMessage        :: S.ByteString
+    , stackTrace          :: S.ByteString
+    , stackFrameDelimiter :: S.ByteString
+    }
+
+data TransactionId = TransactionId
+    { rawTransactionId :: CLong
+    , transactionError :: IORef (Maybe TransactionError)
+    }
 
 newtype SegmentId = SegmentId CLong
 type SqlObfuscator = CString -> IO CString
