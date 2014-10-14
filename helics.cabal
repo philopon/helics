@@ -1,5 +1,5 @@
 name:                helics
-version:             0.5.0
+version:             0.5.0.1
 synopsis:            New Relic® agent SDK wrapper for Haskell.
 description:         
   New Relic® agent SDK wrapper for Haskell.
@@ -24,6 +24,10 @@ category:            Network
 stability:           experimental
 build-type:          Custom
 cabal-version:       >=1.10
+extra-source-files:  src/Network/Helics.hs
+                   , src/Network/Helics/Sampler.hs
+                   , dummy/Network/Helics.hs
+                   , dummy/Network/Helics/Sampler.hs
 
 flag example
   default: False
