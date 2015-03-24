@@ -19,7 +19,7 @@ author:              HirotomoMoriwaki<philopon.dependence@gmail.com>
 maintainer:          HirotomoMoriwaki<philopon.dependence@gmail.com>
 Homepage:            https://github.com/philopon/helics
 Bug-reports:         https://github.com/philopon/helics/issues
-copyright:           (c) 2014 Hirotomo Moriwaki
+copyright:           (c) 2014-2015 Hirotomo Moriwaki
 category:            Network
 stability:           experimental
 build-type:          Custom
@@ -42,7 +42,7 @@ library
                        Network.Helics.Internal.Types
   ghc-options:         -Wall -O2
   default-language:    Haskell2010
-  build-depends:       base               >=4.6  && <4.8
+  build-depends:       base               >=4.6  && <4.9
                      , data-default-class >=0.0  && <0.1
                      , bytestring         >=0.10 && <0.11
 
