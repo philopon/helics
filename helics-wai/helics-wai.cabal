@@ -1,5 +1,5 @@
 name:                helics-wai
-version:             0.5.0
+version:             0.5.1
 synopsis:            New Relic® agent SDK wrapper for wai.
 description:         
   New Relic® agent SDK wrapper for wai.
@@ -23,7 +23,7 @@ flag example
 library
   exposed-modules:     Network.Helics.Wai
                        Network.Helics.Wai.Safe
-  build-depends:       base               >=4.6  && <4.8
+  build-depends:       base               >=4.6  && <4.9
                      , wai                >=3.0  && <3.1
                      , vault              >=0.3  && <0.4
                      , helics             >=0.5  && <0.6
