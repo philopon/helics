@@ -9,7 +9,7 @@ description:
   Copy include\/lib dir of SDK to system include\/lib path, or specify extra include\/lib path when installing this package.
   .
   @
-  cabal insstall helics --extra-lib-dirs=$SDK_LIB_DIR --extra-include-dir=$SDK_INCLUDE_DIR
+  cabal install helics --extra-lib-dirs=$SDK_LIB_DIR --extra-include-dir=$SDK_INCLUDE_DIR
   @
   .
 
