@@ -1,7 +1,12 @@
 #!/bin/bash
 
-FILE=`curl -L https://dl.dropboxusercontent.com/u/2695969/get-latest-newrelic-sdk.sh | bash`
+FILE=`curl -L https://gist.githubusercontent.com/philopon/b51788ae5c217dc7d269/raw/get-latest-newrelic-agent.sh | bash`
 tar xvf $FILE
-sudo cp ${FILE%.tar.gz}/include/* /usr/local/include
-sudo cp ${FILE%.tar.gz}/lib/*     /usr/local/lib
-cabal install -f example --only-dependencies --enable-tests . ./helics-wai
+NEWRELIC_BASE=`pwd`/${FILE%.tar.gz}
+export LD_LIBRARY_PATH=$NEWRELIC_BASE/lib
+
+cabal update
+cabal install -f example --only-dependencies --enable-tests\
+  --extra-include-dirs=$NEWRELIC_BASE/include\
+  --extra-lib-dirs=$NEWRELIC_BASE/lib\
+  . ./helics-wai
