@@ -1,5 +1,5 @@
 name:                helics
-version:             0.5.1
+version:             0.5.1.1
 synopsis:            New Relic® agent SDK wrapper for Haskell.
 description:         
   New Relic® agent SDK wrapper for Haskell.
@@ -19,7 +19,7 @@ author:              HirotomoMoriwaki<philopon.dependence@gmail.com>
 maintainer:          HirotomoMoriwaki<philopon.dependence@gmail.com>
 Homepage:            https://github.com/philopon/helics
 Bug-reports:         https://github.com/philopon/helics/issues
-copyright:           (c) 2014-2015 Hirotomo Moriwaki
+copyright:           (c) 2014-2017 Hirotomo Moriwaki
 category:            Network
 stability:           experimental
 build-type:          Custom
@@ -42,8 +42,8 @@ library
                        Network.Helics.Internal.Types
   ghc-options:         -Wall -O2
   default-language:    Haskell2010
-  build-depends:       base               >=4.6  && <4.9
-                     , data-default-class >=0.0  && <0.1
+  build-depends:       base               >=4.6  && <4.11
+                     , data-default-class >=0.0  && <0.2
                      , bytestring         >=0.10 && <0.11
 
   if flag(dummy) && !os(linux)
@@ -53,7 +53,7 @@ library
                          Network.Helics.Foreign.Client
                          Network.Helics.Foreign.Transaction
                          Network.Helics.Foreign.System
-    build-depends:       time               >=1.2  && <1.6
+    build-depends:       time               >=1.2  && <1.9
                        , unix               >=2.6  && <2.8
                        , bytestring-show    >=0.3  && <0.4
     hs-source-dirs:      common, src
